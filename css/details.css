@@ -133,3 +133,16 @@ body {
   gap: 8px;
   flex-wrap: wrap;
 }
+.display-flex{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1vmin;
+}
+.flex-col{
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.flex-col.spaced{
+  justify-content: space-around;
+}

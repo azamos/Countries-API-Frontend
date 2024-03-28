@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="./css/details.css" />
     <title>Details Page</title>
   </head>
-  <body>
+  <body onload="initialize()">
     <!-- Loader -->
     <div class="loader">
       <div class="spinner">
@@ -51,6 +51,7 @@
           </a>
         </div>
         <button
+          onclick="toggleTheme()"
           type="button"
           aria-label="Theme Switcher Button"
           class="theme-toggle flex flex-jc-sb flex-ai-c"
