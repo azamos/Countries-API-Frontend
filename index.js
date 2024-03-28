@@ -1,7 +1,7 @@
-const relevantFields =
+const RELEVANT_FIELDS =
   "tld,name,capital,flags,population,region,subregion,currencies,languages,borders";
 
-const getRelevantURL = (url) => `${url}?fields=${relevantFields}`;
+const getRelevantURL = (url) => `${url}?fields=${RELEVANT_FIELDS}`;
 
 const freeChildren = (
   container = document.getElementById("countries-container")
@@ -112,7 +112,7 @@ const addCountryHTML = (countryData) => {
   document.getElementById("countries-container").appendChild(newHTML);
 };
 
-const allURL = "https://restcountries.com/v3.1/all";
+const ALL_URL = "https://restcountries.com/v3.1/all";
 const COUNTRIES_KEY = "Countries";
 
 const resetAndFetchAll = async () => {
@@ -125,7 +125,7 @@ const fetchAll = async () => {
   const fromLs = localStorage.getItem(COUNTRIES_KEY);
   let countriesArr;
   if (!fromLs) {
-    countriesArr = await fetch(getRelevantURL(allURL)).then((_) => _.json());
+    countriesArr = await fetch(getRelevantURL(ALL_URL)).then((_) => _.json());
     let stringed = JSON.stringify(countriesArr);
     localStorage.setItem(COUNTRIES_KEY, stringed);
   } else {
@@ -139,9 +139,9 @@ const intialise = async () => {
   fetchAll();
 };
 
-const regionURL = "https://restcountries.com/v3.1/region";
+const REGION_URL = "https://restcountries.com/v3.1/region";
 const searchByRegion = async (region) => {
-  const thisRegionURL = `${regionURL}/${region}`;
+  const thisRegionURL = `${REGION_URL}/${region}`;
   freeChildren();
   regionCountires = await fetch(getRelevantURL(thisRegionURL))
     .then((_) => _.json())
@@ -150,10 +150,10 @@ const searchByRegion = async (region) => {
   localStorage.setItem(COUNTRIES_KEY,JSON.stringify(regionCountires));
 };
 
-const nameURL = "https://restcountries.com/v3.1/name";
+const NAME_URL = "https://restcountries.com/v3.1/name";
 
 const fetchAutoComSuggestions = async (partialMatch) => {
-  const thisNameURL = `${nameURL}/${partialMatch.trim()}`;
+  const thisNameURL = `${NAME_URL}/${partialMatch.trim()}`;
   try {
     let matches = await fetch(getRelevantURL(thisNameURL)).then((_) =>
       _.json()
@@ -168,7 +168,7 @@ const fetchAutoComSuggestions = async (partialMatch) => {
   }
 };
 
-const searchDelay = 300;
+const SEARCH_DELAY = 300;
 let autoCompleteTimer = null;
 
 const searchInputChanged = async (e) => {
@@ -179,7 +179,7 @@ const searchInputChanged = async (e) => {
   if (value.trim()) {
     autoCompleteTimer = setTimeout(
       async () => await fetchAutoComSuggestions(value.trim()),
-      searchDelay
+      SEARCH_DELAY
     );
   } else {
     resetAndFetchAll();

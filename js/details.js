@@ -89,12 +89,12 @@ const populateFields = (
   countryDetailsContainer.appendChild(countryDiv);
 };
 
-const codesURL = "https://restcountries.com/v3.1/alpha?codes="
+const CODES_URL = "https://restcountries.com/v3.1/alpha?codes="
 
 const initialize = async() => {
   setThemeIfNeeded();
   const bordersCodes = getParameterByName("borders");
-  const codesURLWithValues = codesURL + bordersCodes +"&fields=name";
+  const codesURLWithValues = CODES_URL + bordersCodes +"&fields=name";
   let borders;
   if(bordersCodes.length){
     borders = await fetch(codesURLWithValues).then(_=>_.json());
