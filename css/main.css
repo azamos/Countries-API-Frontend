@@ -223,3 +223,7 @@
   text-transform: capitalize;
   margin-bottom: 15px;
 }
+
+.invisible{
+  display: none;
+}
