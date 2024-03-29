@@ -29,3 +29,6 @@ const toggleTheme = () => {
 };
 
 const formatInteger = numStr => parseInt(numStr).toLocaleString();
+
+const SELECTED_COUNTRY = "SELECTED_COUNTRY";
+const STATE = { SELECTED_COUNTRY : null }

@@ -62,6 +62,11 @@ const arrayToString = arr => {
   return strResult;
 }
 
+
+/* 
+All of the data is non-volunerable data, consisting mostly of primitives.
+The rest are 3 short arrays of primitives. Thus, its okay to pass
+the display data via URL rather than via localStorage.  */
 const buildQueryStr = queryData => {
   const {commonName,capital,population,region,svg,nativeName,subregion,TLD,
   borders,currencies,languages} = queryData;
@@ -113,7 +118,47 @@ const addCountryHTML = (countryData) => {
 };
 
 const ALL_URL = "https://restcountries.com/v3.1/all";
-const COUNTRIES_KEY = "Countries";
+const ALL_COUNTRIES = "all";
+const AFRIKA = "africa";
+const AMERICAS = "america";
+const ASIA = "asia";
+const EUROPE = "europe";
+const OCEANIA = "oceania";
+
+const THOUSAND = 1000;
+const SECS_PER_MIN = 60;
+const MINS_PER_HR = 60;
+const HRS_PER_DAY = 24;
+const DAYS_PER_WEEK = 7;
+const HOURLY_REFRESH = THOUSAND * SECS_PER_MIN * MINS_PER_HR; 
+const DAILY_REFRESH = HOURLY_REFRESH * HRS_PER_DAY; 
+const WEEKLY_REFRESH = DAILY_REFRESH * DAYS_PER_WEEK;
+const getCurrentDate = () => new Date(Date.now());
+
+const loadFromCacheOrAPI = async (key,url,refreshRate = HOURLY_REFRESH) => {
+  let result =  JSON.parse(localStorage.getItem(key));
+  if(!result || result.expirationDate < getCurrentDate()){
+    if(!result){
+      console.log('data was missing.Fetching...');
+    }
+    else{
+      console.log('expired. Refetching...');
+    }
+    const countriesArray = await fetch(url).then(_=>_.json());
+    const currentTime = new Date().getTime();
+    const expirationDate = new Date(currentTime+refreshRate).getTime();
+    result = {};
+    result.expirationDate = expirationDate;
+    result.payload = countriesArray;
+    localStorage.setItem(key,JSON.stringify(result));
+  }
+  else{
+    console.log(`${key} was in LS, and not expired yet. Loaded...`);
+    console.log(result);
+  }
+  return result.payload;
+}
+
 
 const resetAndFetchAll = async () => {
   localStorage.clear();
@@ -122,19 +167,12 @@ const resetAndFetchAll = async () => {
 
 const fetchAll = async () => {
   freeChildren();
-  const fromLs = localStorage.getItem(COUNTRIES_KEY);
-  let countriesArr;
-  if (!fromLs) {
-    countriesArr = await fetch(getRelevantURL(ALL_URL)).then((_) => _.json());
-    let stringed = JSON.stringify(countriesArr);
-    localStorage.setItem(COUNTRIES_KEY, stringed);
-  } else {
-    countriesArr = JSON.parse(fromLs);
-  }
+  const countriesArr = await loadFromCacheOrAPI(ALL_COUNTRIES,getRelevantURL(ALL_URL));
   countriesArr.forEach((countryInfo) => addCountryHTML(countryInfo));
 }
 
 const intialise = async () => {
+  // localStorage.clear();
   setThemeIfNeeded();
   fetchAll();
 };
