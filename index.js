@@ -62,11 +62,6 @@ const arrayToString = arr => {
   return strResult;
 }
 
-
-/* 
-All of the data is non-volunerable data, consisting mostly of primitives.
-The rest are 3 short arrays of primitives. Thus, its okay to pass
-the display data via URL rather than via localStorage.  */
 const buildQueryStr = queryData => {
   const {commonName,capital,population,region,svg,nativeName,subregion,TLD,
   borders,currencies,languages} = queryData;
@@ -138,12 +133,6 @@ const getCurrentDate = () => new Date(Date.now());
 const loadFromCacheOrAPI = async (key,url,refreshRate = HOURLY_REFRESH) => {
   let result =  JSON.parse(localStorage.getItem(key));
   if(!result || result.expirationDate < getCurrentDate()){
-    // if(!result){
-    //   console.log('data was missing.Fetching...');
-    // }
-    // else{
-    //   console.log('expired. Refetching...');
-    // }
     const countriesArray = await fetch(url).then(_=>_.json());
     const currentTime = new Date().getTime();
     const expirationDate = new Date(currentTime+refreshRate).getTime();
@@ -152,9 +141,6 @@ const loadFromCacheOrAPI = async (key,url,refreshRate = HOURLY_REFRESH) => {
     result.payload = countriesArray;
     localStorage.setItem(key,JSON.stringify(result));
   }
-  // else{
-  //   console.log(`${key} was in LS, and not expired yet. Loaded...`);
-  // }
   return result.payload;
 }
 
@@ -164,7 +150,10 @@ const fetchAll = async () => {
   countriesArr.forEach((countryInfo) => addCountryHTML(countryInfo));
 }
 
+let cache;
+
 const intialise = async () => {
+  cache = new AutoCompleteCache();
   setThemeIfNeeded();
   fetchAll();
 };
@@ -181,18 +170,25 @@ const searchByRegion = async (region) => {
 const NAME_URL = "https://restcountries.com/v3.1/name";
 
 const fetchAutoComSuggestions = async (partialMatch) => {
-  const thisNameURL = `${NAME_URL}/${partialMatch.trim()}`;
-  try {
-    let matches = await fetch(getRelevantURL(thisNameURL)).then((_) =>
-      _.json()
-    );
-    if (matches.length) {
-      freeChildren();
-      matches.forEach((p) => addCountryHTML(p));
-      localStorage.setItem(COUNTRIES_KEY,JSON.stringify(matches));
+  partialMatch = partialMatch.trim();
+  let matches=[];
+  if(partialMatch in cache.storedSuggestions){
+    matches = cache.storedSuggestions[partialMatch];
+  }
+  else{
+    const thisNameURL = `${NAME_URL}/${partialMatch}`;
+    try {
+      matches = await fetch(getRelevantURL(thisNameURL)).then((_) =>
+        _.json()
+      );
+      cache.storeInCache(partialMatch,matches);
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
+  }
+  if (matches.length) {
+    freeChildren();
+    matches.forEach((p) => addCountryHTML(p));
   }
 };
 
@@ -218,3 +214,23 @@ const openDropDown = () => {
   const dd = document.getElementById("dropdown-wrapper");
   dd.classList.toggle("open");
 };
+
+const SUGGESTIONS_LIMIT = 32;
+class AutoCompleteCache{
+  constructor(){
+    this.size = 0 ;
+    this.keys = new Array(SUGGESTIONS_LIMIT);
+    this.storedSuggestions = {};
+  }
+  storeInCache(key,value){
+    if(this.size == SUGGESTIONS_LIMIT){
+      const oldestKey = this.keys[0];
+      delete this.storedSuggestions[oldestKey];
+      this.keys[0] = key;
+    }
+    else{
+      this.keys[this.size++] = key; 
+    }
+    this.storedSuggestions[key] = value;
+  }
+}
