@@ -119,8 +119,8 @@ const addCountryHTML = (countryData) => {
 
 const ALL_URL = "https://restcountries.com/v3.1/all";
 const ALL_COUNTRIES = "all";
-const AFRIKA = "africa";
-const AMERICAS = "america";
+const AFRICA = "africa";
+const AMERICAS = "americas";
 const ASIA = "asia";
 const EUROPE = "europe";
 const OCEANIA = "oceania";
@@ -138,12 +138,12 @@ const getCurrentDate = () => new Date(Date.now());
 const loadFromCacheOrAPI = async (key,url,refreshRate = HOURLY_REFRESH) => {
   let result =  JSON.parse(localStorage.getItem(key));
   if(!result || result.expirationDate < getCurrentDate()){
-    if(!result){
-      console.log('data was missing.Fetching...');
-    }
-    else{
-      console.log('expired. Refetching...');
-    }
+    // if(!result){
+    //   console.log('data was missing.Fetching...');
+    // }
+    // else{
+    //   console.log('expired. Refetching...');
+    // }
     const countriesArray = await fetch(url).then(_=>_.json());
     const currentTime = new Date().getTime();
     const expirationDate = new Date(currentTime+refreshRate).getTime();
@@ -152,17 +152,10 @@ const loadFromCacheOrAPI = async (key,url,refreshRate = HOURLY_REFRESH) => {
     result.payload = countriesArray;
     localStorage.setItem(key,JSON.stringify(result));
   }
-  else{
-    console.log(`${key} was in LS, and not expired yet. Loaded...`);
-    console.log(result);
-  }
+  // else{
+  //   console.log(`${key} was in LS, and not expired yet. Loaded...`);
+  // }
   return result.payload;
-}
-
-
-const resetAndFetchAll = async () => {
-  localStorage.clear();
-  fetchAll();
 }
 
 const fetchAll = async () => {
@@ -172,20 +165,17 @@ const fetchAll = async () => {
 }
 
 const intialise = async () => {
-  // localStorage.clear();
   setThemeIfNeeded();
   fetchAll();
 };
 
 const REGION_URL = "https://restcountries.com/v3.1/region";
+
 const searchByRegion = async (region) => {
   const thisRegionURL = `${REGION_URL}/${region}`;
   freeChildren();
-  regionCountires = await fetch(getRelevantURL(thisRegionURL))
-    .then((_) => _.json())
-    .catch((e) => console.log(e));
-  regionCountires.forEach((cInReg) => addCountryHTML(cInReg));
-  localStorage.setItem(COUNTRIES_KEY,JSON.stringify(regionCountires));
+  const regionCountries = await loadFromCacheOrAPI(region,getRelevantURL(thisRegionURL));
+  regionCountries.forEach((cInReg) => addCountryHTML(cInReg));
 };
 
 const NAME_URL = "https://restcountries.com/v3.1/name";
@@ -220,7 +210,7 @@ const searchInputChanged = async (e) => {
       SEARCH_DELAY
     );
   } else {
-    resetAndFetchAll();
+    fetchAll();
   }
 };
 
